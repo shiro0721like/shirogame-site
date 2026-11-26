@@ -88,6 +88,24 @@ npm run release:add -- "D:\cmdproject\game4\release\dorm-blitz-Setup-0.1.1.exe" 
 
 `dorm.shirogame.top` 的 DNS 记录和 Tunnel 路由**保持原样**，不要给根域或 `*` 加 Tunnel 路由。对外只发 `shirogame.top`，不要传播 `*.pages.dev` 链接（国内访问不稳）。
 
+### www 跳主域（面板里配，不是 `_redirects`）
+
+`public/_redirects` **做不了**这件事：Cloudflare Pages 的 `_redirects` 只接受路径作为来源，`https://www.shirogame.top/*` 这种带域名的写法会被静默忽略（表现为 www 直接 200、整站内容重复两份，很伤 SEO）。
+
+正确做法：
+
+1. Cloudflare Dashboard → 选 `shirogame.top` 这个域名 → **规则** → **重定向规则** → 创建规则
+2. 名称：`www to apex`
+3. 当传入请求匹配：**自定义筛选表达式** → `http.host eq "www.shirogame.top"`
+4. 然后：**静态** → 目标 URL `https://shirogame.top`，状态码 **301**，勾选「保留查询字符串」
+5. 部署
+
+配完验证（应看到 `301` 且 `location: https://shirogame.top/`）：
+
+```bash
+curl -s -I https://www.shirogame.top/ | head -3
+```
+
 ## 截图
 
 `src/assets/games/<slug>/` 里的图是**真实游戏画面**，不是渲染的概念图。想重拍：

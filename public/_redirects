@@ -1,4 +1,4 @@
-# www 统一跳到主域（Pages 自定义域也会做一次，这里是兜底）
-https://www.shirogame.top/*
-  https://shirogame.top/:splat
-  301
+# www → 主域的 301 不在这里做。
+# Cloudflare Pages 的 _redirects 只接受「路径」作为来源，写 https://www.shirogame.top/*
+# 会被静默忽略（实测 www 直接返回 200，整站重复）。
+# 正确做法：Cloudflare 面板 → 该域名 → 规则 → 重定向规则，见 README「www 跳主域」。
