@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import GameCard from '../../components/GameCard.astro';
+import { getGames } from '../../lib/content';
+
+const games = await getGames();
+---
+
+<Base
+  title="全部作品"
+  description={`shirogame.top 上的全部作品（${games.length} 款）：类型、人数、平台和状态，点进去看介绍、截图和下载。`}
+>
+  <div class="container">
+    <header class="page-head">
+      <h1>全部作品</h1>
+      <p class="lede">目前 {games.length} 款。</p>
+    </header>
+    <section class="section section--tight">
+      {
+        games.length > 0 ? (
+          <div class="card-grid">
+            {games.map((g) => (
+              <GameCard game={g} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty">还没有作品。</p>
+        )
+      }
+    </section>
+  </div>
+</Base>

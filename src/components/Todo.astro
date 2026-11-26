@@ -1,0 +1,18 @@
+---
+/**
+ * 文案占位。站主补完文案后，把对应位置的 TODO(文案) 换成正文、删掉这个组件即可。
+ * `block` 用于整段留白，`hint` 说明这里应该写什么。
+ */
+interface Props {
+  hint?: string;
+  block?: boolean;
+}
+
+const { hint, block = false } = Astro.props;
+const Tag = (block ? 'div' : 'span') as 'div' | 'span';
+---
+
+<Tag class:list={['todo', block && 'todo--block']}>
+  <span>TODO(文案)</span>
+  {hint && <small>{hint}</small>}
+</Tag>

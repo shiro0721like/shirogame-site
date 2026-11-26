@@ -1,0 +1,171 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Badge from '../components/Badge.astro';
+import GameCard from '../components/GameCard.astro';
+import Todo from '../components/Todo.astro';
+import { getGames, getLogs, isTodo } from '../lib/content';
+import { downloads } from '../lib/downloads';
+import { formatSize } from '../lib/format';
+import { SITE } from '../data/site';
+
+const games = await getGames();
+const logs = await getLogs();
+const [featured, ...rest] = games;
+const latestLog = logs[0];
+const totalReleases = games.reduce((n, g) => n + (downloads[g.data.downloadId]?.releases.length ?? 0), 0);
+const lastUpdated = games.map((g) => g.data.updated).sort().pop() ?? '—';
+const featuredDl = featured ? downloads[featured.data.downloadId] : undefined;
+const featuredLatest = featuredDl?.releases[0];
+// 首屏用一张游戏内画面，作品墙里再用封面，避免同一张图在一页里出现两次
+const heroShot = featured?.data.screenshots[0];
+const og = featured
+  ? (await getImage({ src: featured.data.cover, format: 'jpg', width: 1200, height: 630 })).src
+  : undefined;
+---
+
+<Base title={SITE.title} description={SITE.description} ogImage={og}>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">{SITE.name}.top</p>
+        <h1>我做的游戏</h1>
+        <div class="hero-lede">
+          <Todo block hint="站点一句话定位" />
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="#games">看作品</a>
+          <a class="btn" href="/downloads/">下载中心</a>
+        </div>
+        <dl class="hero-stats">
+          <div>
+            <dt class="sr-only">作品数</dt>
+            <dd><b>{games.length}</b><span>款作品</span></dd>
+          </div>
+          <div>
+            <dt class="sr-only">已发布版本数</dt>
+            <dd><b>{totalReleases}</b><span>个已发布版本</span></dd>
+          </div>
+          <div>
+            <dt class="sr-only">最近更新</dt>
+            <dd><b>{lastUpdated}</b><span>最近更新</span></dd>
+          </div>
+        </dl>
+      </div>
+
+      {
+        featured && (
+          <figure class="hero-art brackets">
+            <Picture
+              src={heroShot ? heroShot.src : featured.data.cover}
+              formats={['avif', 'webp']}
+              widths={[640, 1280]}
+              sizes="(min-width: 960px) 52vw, 100vw"
+              alt={heroShot ? heroShot.alt : `${featured.data.title} 游戏画面`}
+              priority
+            />
+            <figcaption>
+              <span>
+                <b>{featured.data.title}</b> · {heroShot ? '游戏画面' : '封面'}
+              </span>
+              {featuredLatest && <span class="mono">v{featuredLatest.version}</span>}
+            </figcaption>
+          </figure>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section" id="games">
+    <div class="container">
+      <div class="section-head">
+        <h2>作品</h2>
+        {games.length > 1 && <a href="/games/">全部作品 →</a>}
+      </div>
+
+      {
+        featured && (
+          <a class="feature" href={`/games/${featured.data.slug}/`}>
+            <div class="feature-media">
+              <Picture
+                src={featured.data.cover}
+                formats={['avif', 'webp']}
+                widths={[640, 1280]}
+                sizes="(min-width: 860px) 55vw, 100vw"
+                alt=""
+                loading="lazy"
+              />
+            </div>
+            <div class="feature-body">
+              <Badge status={featured.data.status} />
+              <h3>
+                {featured.data.title}
+                {featured.data.titleEn && <small>{featured.data.titleEn}</small>}
+              </h3>
+              {isTodo(featured.data.tagline) ? (
+                <div class="feature-desc is-todo">
+                  <Todo hint={`${featured.data.title}的一句话介绍`} />
+                </div>
+              ) : (
+                <p class="feature-desc">{featured.data.tagline}</p>
+              )}
+              <div class="feature-foot">
+                <span>{featured.data.genre}</span>
+                <span>{featured.data.players}</span>
+                <span>{featured.data.platform.join(' / ')}</span>
+                {featuredLatest && (
+                  <span>
+                    最新 <span class="mono">v{featuredLatest.version}</span> · {formatSize(featuredLatest.size)}
+                  </span>
+                )}
+              </div>
+              <span class="btn btn--sm">查看作品</span>
+            </div>
+          </a>
+        )
+      }
+
+      {!featured && <p class="empty">还没有作品。</p>}
+
+      {rest.length > 0 && <div class="card-grid">{rest.map((g) => <GameCard game={g} />)}</div>}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>最近更新</h2>
+        <a href="/changelog/">全部日志 →</a>
+      </div>
+      {
+        latestLog ? (
+          <a class="log-teaser" href={`/changelog/#${latestLog.id}`}>
+            <time datetime={latestLog.data.date}>{latestLog.data.date}</time>
+            <h3>{latestLog.data.title}</h3>
+            <p>{latestLog.data.summary}</p>
+          </a>
+        ) : (
+          <p class="empty">还没有开发日志。</p>
+        )
+      }
+
+      <div class="entries section-gap">
+        <a class="entry" href="/downloads/">
+          <h3>下载中心</h3>
+          <p>每款作品的最新版、历史版本和校验值。</p>
+          <span class="mono">/downloads</span>
+        </a>
+        <a class="entry" href="/changelog/">
+          <h3>开发日志</h3>
+          <p>更新了什么、改了什么，按时间倒序。</p>
+          <span class="mono">/changelog</span>
+        </a>
+        <a class="entry" href="/about/">
+          <h3>关于</h3>
+          <p>这个站怎么来的，以及怎么联系我。</p>
+          <span class="mono">/about</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

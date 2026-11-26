@@ -1,0 +1,117 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Badge from '../../components/Badge.astro';
+import DownloadPanel from '../../components/DownloadPanel.astro';
+import { getGames, isTodo } from '../../lib/content';
+import { getDownloads } from '../../lib/downloads';
+import { fileKind, formatSize } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const games = await getGames();
+  return games.map((game) => ({ params: { slug: game.data.slug }, props: { game } }));
+}
+
+const { game } = Astro.props;
+const d = game.data;
+const { Content } = await render(game);
+const dl = getDownloads(d.downloadId);
+const latest = dl?.releases[0];
+
+const og = (await getImage({ src: d.cover, format: 'jpg', width: 1200, height: 630 })).src;
+const description = isTodo(d.tagline)
+  ? `${d.title}${d.titleEn ? `（${d.titleEn}）` : ''}：${d.genre}，${d.players}，${d.platform.join(' / ')}。`
+  : d.tagline;
+
+const shots = await Promise.all(
+  d.screenshots.map(async (s) => ({
+    alt: s.alt,
+    full: (await getImage({ src: s.src, format: 'webp', width: 1920 })).src,
+  })),
+);
+---
+
+<Base
+  title={`${d.title}${d.titleEn ? ` ${d.titleEn}` : ''}`}
+  description={description}
+  ogImage={og}
+>
+  <div class="container">
+    <a class="back" href="/games/">← 返回作品墙</a>
+
+    <header class="detail-head">
+      <h1>{d.title}</h1>
+      {d.titleEn && <span class="en">{d.titleEn}</span>}
+      <Badge status={d.status} />
+    </header>
+
+    <div class="cover">
+      <Picture
+        src={d.cover}
+        formats={['avif', 'webp']}
+        widths={[640, 1280, 1920]}
+        sizes="(min-width: 1200px) 1056px, 100vw"
+        alt={`${d.title}封面`}
+        priority
+      />
+    </div>
+
+    {
+      latest?.url && (
+        <div class="mobile-dl">
+          <a class="btn btn--primary btn--block" href={latest.url} rel="nofollow">
+            下载{fileKind(latest.url)} · v{latest.version} · {formatSize(latest.size)}
+          </a>
+          <p>首次运行若提示“未知发布者”，点“更多信息 → 仍要运行”。</p>
+        </div>
+      )
+    }
+
+    <div class="detail-grid">
+      <article>
+        <div class="prose">
+          <Content />
+        </div>
+
+        {
+          shots.length > 0 && (
+            <section class="prose" aria-labelledby="shots-title">
+              <h2 id="shots-title">截图</h2>
+              <p class="sr-only">点缩略图看大图。</p>
+              <div class="shots">
+                {shots.map((s, i) => (
+                  <a class="shot" href={s.full} data-lightbox>
+                    <Picture
+                      src={d.screenshots[i].src}
+                      formats={['avif', 'webp']}
+                      widths={[480, 960]}
+                      sizes="(min-width: 768px) 240px, 50vw"
+                      alt={s.alt}
+                      loading="lazy"
+                    />
+                  </a>
+                ))}
+              </div>
+            </section>
+          )
+        }
+      </article>
+
+      <aside class="detail-aside">
+        <DownloadPanel dl={dl} slug={d.slug} title="下载最新版" />
+        <div class="panel">
+          <h2>作品信息</h2>
+          <dl class="meta">
+            <div><dt>类型</dt><dd>{d.genre}</dd></div>
+            <div><dt>人数</dt><dd>{d.players}</dd></div>
+            <div><dt>平台</dt><dd>{d.platform.join(' / ')}</dd></div>
+            {d.tech.length > 0 && <div><dt>技术</dt><dd>{d.tech.join('、')}</dd></div>}
+            <div><dt>首次发布</dt><dd><time datetime={d.firstRelease}>{d.firstRelease}</time></dd></div>
+            <div><dt>最近更新</dt><dd><time datetime={d.updated}>{d.updated}</time></dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Base>

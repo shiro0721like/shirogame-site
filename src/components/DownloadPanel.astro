@@ -1,0 +1,94 @@
+---
+import ReleaseRow from './ReleaseRow.astro';
+import type { GameDownloads } from '../lib/downloads';
+import { channelLabel, fileName, fileKind, formatSize } from '../lib/format';
+
+interface Props {
+  dl?: GameDownloads;
+  slug: string;
+  title?: string;
+  /** 下载中心页自己就是“全部版本”列表，那里不需要历史版本折叠和指向自己的链接 */
+  showHistory?: boolean;
+  showAllLink?: boolean;
+}
+
+const { dl, slug, title = '下载', showHistory = true, showAllLink = true } = Astro.props;
+const latest = dl?.releases[0];
+const older = dl ? dl.releases.slice(1) : [];
+const shaPending = !latest?.sha256 || /^TODO/i.test(latest.sha256);
+const channelClass =
+  latest?.channel === 'stable' ? 'badge--released' : latest?.channel === 'beta' ? 'badge--beta' : 'badge--paused';
+---
+
+<div class="panel">
+  <h2>{title}</h2>
+  {!latest && <p class="empty">暂未发布。这个作品有可下载的版本后，会出现在这里。</p>}
+  {
+    latest && (
+      <>
+        <div class="dl-head">
+          <span class="ver">v{latest.version}</span>
+          <span class={`badge ${channelClass}`}>{channelLabel(latest.channel)}</span>
+          {!latest.url && <span class="badge badge--off">已下架</span>}
+        </div>
+        <dl class="dl-list">
+          <div>
+            <dt>发布日期</dt>
+            <dd>
+              <time datetime={latest.date}>{latest.date}</time>
+            </dd>
+          </div>
+          <div>
+            <dt>文件大小</dt>
+            <dd class="mono">{formatSize(latest.size)}</dd>
+          </div>
+          <div>
+            <dt>文件</dt>
+            <dd>
+              {fileKind(latest.url)}
+              {latest.url && <span class="mono"> · {fileName(latest.url)}</span>}
+            </dd>
+          </div>
+        </dl>
+        {latest.url && (
+          <a class="btn btn--primary btn--block" href={latest.url} rel="nofollow">
+            下载{fileKind(latest.url)} · v{latest.version}
+          </a>
+        )}
+        <details class="sha">
+          <summary>SHA-256 校验值</summary>
+          <div class="sha-box">
+            <code>{shaPending ? '上传安装包后用 sha256sum 算出来填到这里' : latest.sha256}</code>
+            {!shaPending && (
+              <button type="button" class="copy" data-copy={latest.sha256}>
+                复制
+              </button>
+            )}
+          </div>
+        </details>
+        <p class="dl-hint">
+          <b>首次运行：</b>Windows 可能提示“未知发布者”，点“更多信息 → 仍要运行”；如果是从浏览器下载的，可在文件属性里勾“解除锁定”。
+        </p>
+        {showHistory && (
+          <details class="hist">
+            <summary>历史版本{older.length > 0 && `（${older.length}）`}</summary>
+            {older.length > 0 ? (
+              <ul class="rel-list">
+                {older.map((r) => (
+                  <ReleaseRow release={r} />
+                ))}
+              </ul>
+            ) : (
+              <p class="empty">目前只有这一个版本。</p>
+            )}
+          </details>
+        )}
+        {showAllLink && (
+          <p class="dl-hint">
+            <a href={`/downloads/#${slug}`}>在下载中心查看全部版本</a>
+          </p>
+        )}
+      </>
+    )
+  }
+</div>

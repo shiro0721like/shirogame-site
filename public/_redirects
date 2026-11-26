@@ -1,0 +1,4 @@
+# www 统一跳到主域（Pages 自定义域也会做一次，这里是兜底）
+https://www.shirogame.top/*
+  https://shirogame.top/:splat
+  301

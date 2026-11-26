@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import Badge from '../components/Badge.astro';
+import DownloadPanel from '../components/DownloadPanel.astro';
+import ReleaseRow from '../components/ReleaseRow.astro';
+import { getGames } from '../lib/content';
+import { getDownloads } from '../lib/downloads';
+
+const games = await getGames();
+---
+
+<Base
+  title="下载中心"
+  description="shirogame.top 作品的下载中心：每款作品的最新版本、历史版本、文件大小和 SHA-256 校验值。"
+>
+  <div class="container">
+    <header class="page-head">
+      <h1>下载中心</h1>
+      <p class="lede">这里列出每款作品的最新版本、历史版本和校验值。</p>
+    </header>
+
+    {
+      games.map((game) => {
+        const d = game.data;
+        const dl = getDownloads(d.downloadId);
+        return (
+          <section class="dl-game" id={d.slug} aria-labelledby={`${d.slug}-title`}>
+            <div class="dl-game-head">
+              <h2 id={`${d.slug}-title`}>
+                <a href={`/games/${d.slug}/`}>{d.title}</a>
+              </h2>
+              <Badge status={d.status} />
+              <a class="more" href={`/games/${d.slug}/`}>
+                作品介绍 →
+              </a>
+            </div>
+            <div class="dl-cols">
+              <DownloadPanel dl={dl} slug={d.slug} title="最新版本" showHistory={false} showAllLink={false} />
+              <div class="panel">
+                <h2>全部版本</h2>
+                {dl && dl.releases.length > 0 ? (
+                  <ul class="rel-list">
+                    {dl.releases.map((r) => (
+                      <ReleaseRow release={r} />
+                    ))}
+                  </ul>
+                ) : (
+                  <p class="empty">还没有发布过版本。</p>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })
+    }
+  </div>
+</Base>

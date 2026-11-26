@@ -1,0 +1,28 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.astro/
+
+# 安装包、压缩包等二进制：永不进 git（GitHub 单文件 100MB 硬限）
+*.exe
+*.msi
+*.zip
+*.7z
+*.rar
+*.blockmap
+release/
+
+# 本地凭据（wrangler / R2 上传用）
+.dev.vars
+.env
+.env.*
+.wrangler/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 原始截图（体积大，处理后再进 src/assets）
+_raw/

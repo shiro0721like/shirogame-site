@@ -1,0 +1,56 @@
+---
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { getGames, getLogs } from '../lib/content';
+
+const logs = await getLogs();
+const games = await getGames();
+const bySlug = new Map(games.map((g) => [g.data.slug, g]));
+const posts = await Promise.all(
+  logs.map(async (post) => ({ post, Content: (await render(post)).Content })),
+);
+---
+
+<Base
+  title="开发日志"
+  description="shirogame.top 的开发日志：作品更新了什么、站点改了什么，按时间倒序。"
+>
+  <div class="container">
+    <header class="page-head">
+      <h1>开发日志</h1>
+      <p class="lede">更新了什么、改了什么，按时间倒序。</p>
+    </header>
+
+    <div class="log">
+      {
+        logs.length === 0 && <p class="empty">还没有日志。</p>
+      }
+      {
+        posts.map(({ post, Content }) => {
+          const game = post.data.game ? bySlug.get(post.data.game) : undefined;
+          return (
+            <article class="post" id={post.id} aria-labelledby={`${post.id}-title`}>
+              <div class="post-head">
+                <time datetime={post.data.date}>{post.data.date}</time>
+                {game && (
+                  <a href={`/games/${game.data.slug}/`}>关联作品：{game.data.title}</a>
+                )}
+              </div>
+              <h2 id={`${post.id}-title`}>{post.data.title}</h2>
+              {post.data.tags.length > 0 && (
+                <div class="post-tags">
+                  {post.data.tags.map((t) => (
+                    <span>#{t}</span>
+                  ))}
+                </div>
+              )}
+              <div class="prose">
+                <Content />
+              </div>
+            </article>
+          );
+        })
+      }
+    </div>
+  </div>
+</Base>

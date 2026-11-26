@@ -1,0 +1,36 @@
+---
+import { NAV } from '../data/site';
+
+const norm = (p: string) => (p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p);
+const current = norm(Astro.url.pathname);
+---
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="/">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="#0b131c"></rect>
+        <g fill="none" stroke="#8dff6e" stroke-width="5" stroke-linecap="square">
+          <path d="M16 28V16h12"></path>
+          <path d="M36 16h12v12"></path>
+          <path d="M48 36v12H36"></path>
+          <path d="M28 48H16V36"></path>
+        </g>
+        <rect x="26" y="26" width="12" height="12" fill="#4dd4ff"></rect>
+      </svg>
+      shirogame
+    </a>
+    <details class="nav-toggle">
+      <summary aria-label="展开菜单"><span class="nav-bars" aria-hidden="true"></span></summary>
+    </details>
+    <nav class="nav-links" aria-label="主导航">
+      {
+        NAV.map((n) => (
+          <a href={n.href} aria-current={current === norm(n.href) ? 'page' : undefined}>
+            {n.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>

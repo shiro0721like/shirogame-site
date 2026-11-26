@@ -1,0 +1,20 @@
+/* 品牌真值：来自游戏本体 src/styles.css，不要另起一套 */
+:root {
+  --accent: #8dff6e; /* 主色：荧光绿，只用于标题/徽章/短标签 */
+  --accent2: #4dd4ff; /* 副色：青蓝 */
+  --warn: #ff5964; /* 强调/警示：珊瑚红 */
+  --ink: #eaf2ff; /* 主文字 */
+  --ink-2: #cdd9e9; /* 正文（深底对比度 >= 4.5:1） */
+  --muted: #a6bacf; /* 次要文字（深底对比度 >= 4.5:1） */
+  --bg-deep: #05080d; /* 背景底色 */
+  --panel: rgba(10, 16, 24, 0.82);
+  --line: rgba(140, 175, 210, 0.22);
+  --line-strong: rgba(140, 175, 210, 0.4);
+
+  --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'SF Mono', Menlo, monospace;
+
+  --radius: 12px;
+  --nav-h: 60px;
+  --container: 1120px;
+}

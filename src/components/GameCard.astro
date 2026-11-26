@@ -1,0 +1,44 @@
+---
+import { Picture } from 'astro:assets';
+import Badge from './Badge.astro';
+import Todo from './Todo.astro';
+import { isTodo, type GameEntry } from '../lib/content';
+
+interface Props {
+  game: GameEntry;
+}
+
+const { game } = Astro.props;
+const d = game.data;
+---
+
+<a class="card" href={`/games/${d.slug}/`}>
+  <div class="card-media">
+    <Picture
+      src={d.cover}
+      formats={['avif', 'webp']}
+      widths={[480, 960]}
+      sizes="(min-width: 1400px) 520px, (min-width: 768px) 50vw, 100vw"
+      alt=""
+      loading="lazy"
+    />
+    <span class="card-badge"><Badge status={d.status} /></span>
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">{d.title}</h3>
+    {
+      isTodo(d.tagline) ? (
+        <p class="card-tagline">
+          <Todo hint={d.titleEn} />
+        </p>
+      ) : (
+        <p class="card-tagline">{d.tagline}</p>
+      )
+    }
+    <div class="card-meta">
+      <span>{d.genre}</span>
+      <span>{d.players}</span>
+      <span>{d.platform.join(' / ')}</span>
+    </div>
+  </div>
+</a>

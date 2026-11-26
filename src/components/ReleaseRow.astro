@@ -1,0 +1,29 @@
+---
+import type { Release } from '../lib/downloads';
+import { channelLabel, fileName, fileKind, formatSize } from '../lib/format';
+
+interface Props {
+  release: Release;
+}
+
+const { release: r } = Astro.props;
+---
+
+<li class="rel">
+  <div class="rel-top">
+    <b>v{r.version}</b>
+    <time datetime={r.date}>{r.date}</time>
+    <span>{channelLabel(r.channel)}</span>
+    <span>{formatSize(r.size)}</span>
+    {!r.url && <span class="badge badge--off">已下架</span>}
+  </div>
+  {r.notes && <p>{r.notes}</p>}
+  <span class="rel-sha">{r.sha256}</span>
+  {
+    r.url && (
+      <a class="btn btn--sm" href={r.url} rel="nofollow">
+        下载{fileKind(r.url)} · {fileName(r.url)}
+      </a>
+    )
+  }
+</li>
