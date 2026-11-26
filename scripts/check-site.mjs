@@ -10,12 +10,18 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const args = Object.fromEntries(
-  process.argv.slice(2).map((a) => {
-    const [k, v] = a.replace(/^--/, '').split('=');
-    return [k, v ?? true];
-  }),
-);
+const args = {};
+for (let i = 0; i < process.argv.length - 2; i++) {
+  const a = process.argv[i + 2];
+  if (!a.startsWith('--')) continue;
+  const [k, v] = a.replace(/^--/, '').split('=');
+  if (v !== undefined) {
+    args[k] = v;
+  } else {
+    const next = process.argv[i + 3];
+    args[k] = next && !next.startsWith('--') ? (i++, next) : true;
+  }
+}
 const BASE = (args.base ?? 'http://localhost:4321').replace(/\/$/, '');
 const ORIGIN = new URL(BASE).origin;
 const SHOTS = args.shots ? path.resolve(args.shots) : null;

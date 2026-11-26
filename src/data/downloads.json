@@ -9,7 +9,7 @@
         "channel": "stable",
         "size": 121656330,
         "sha256": "74894a088f20620c92510a27b3b22a03e86ea64afe9e46d5cc32c2ca21b0d24f",
-        "url": "https://dl.shirogame.top/dorm-blitz/0.1.0/dorm-blitz-Setup-0.1.0.exe",
+        "url": "https://github.com/shiro0721like/dorm-blitz-releases/releases/download/v0.1.0/dorm-blitz-Setup-0.1.0.exe",
         "notes": "首个安装版：固定地址联机 + 内容热更新"
       }
     ]

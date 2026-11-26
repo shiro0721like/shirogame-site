@@ -12,7 +12,7 @@ export interface Release {
   /** 字节 */
   size: number;
   sha256: string;
-  /** 指向 R2 的直链；为空表示该版本已下架 */
+  /** 指向 GitHub Release 的直链；为空表示该版本已下架 */
   url: string;
   notes?: string;
 }
@@ -28,7 +28,9 @@ export type Downloads = Record<string, GameDownloads>;
 
 const DOWNLOADS = raw as unknown as Downloads;
 
-export const DOWNLOAD_BASE = 'https://dl.shirogame.top';
+/** 下载直链的唯一来源：GitHub Releases（公开仓库，匿名可下）。 */
+export const DOWNLOAD_ORIGIN = 'https://github.com';
+export const DOWNLOAD_REPO = 'shiro0721like/dorm-blitz-releases';
 
 /** 构建期校验：清单写错直接让构建失败，而不是把错版本号发出去。 */
 function validate(data: Downloads): Downloads {
@@ -56,12 +58,33 @@ function validate(data: Downloads): Downloads {
       }
       if (r.url) {
         const u = new URL(r.url);
-        if (u.origin !== DOWNLOAD_BASE) {
-          throw new Error(`downloads.json[${key}] ${r.version}：url 必须指向 ${DOWNLOAD_BASE}，不能用 r2.dev`);
-        }
-        if (!u.pathname.startsWith(`/${key}/${r.version}/`)) {
+        if (u.origin !== DOWNLOAD_ORIGIN) {
           throw new Error(
-            `downloads.json[${key}] ${r.version}：url 路径必须是 /${key}/${r.version}/<文件名>，实际是 ${u.pathname}`,
+            `downloads.json[${key}] ${r.version}：url 必须指向 ${DOWNLOAD_ORIGIN} 的 Release，实际是 ${u.origin}`,
+          );
+        }
+        const prefix = `/${DOWNLOAD_REPO}/releases/download/`;
+        if (!u.pathname.startsWith(prefix)) {
+          throw new Error(
+            `downloads.json[${key}] ${r.version}：url 路径必须是 ${prefix}<tag>/<文件名>，实际是 ${u.pathname}`,
+          );
+        }
+        const rest = u.pathname.slice(prefix.length).split('/');
+        const tag = rest[0];
+        const file = rest.slice(1).join('/');
+        if (rest.length !== 2 || !tag || !file) {
+          throw new Error(
+            `downloads.json[${key}] ${r.version}：url 必须正好是 <tag>/<文件名> 两段，实际是 ${u.pathname}`,
+          );
+        }
+        if (tag !== `v${r.version}`) {
+          throw new Error(
+            `downloads.json[${key}]：tag「${tag}」与版本「${r.version}」不一致，应为 v${r.version}`,
+          );
+        }
+        if (!file.includes(`-${r.version}.`)) {
+          throw new Error(
+            `downloads.json[${key}] ${r.version}：文件名「${file}」里没有版本号，规范是 <slug>-Setup-<version>.exe`,
           );
         }
       }

@@ -1,6 +1,6 @@
 # shirogame-site
 
-`shirogame.top` 的站点源码：我做的游戏的陈列窗 + 下载站。纯静态，Astro 生成，托管在 Cloudflare Pages；安装包放 Cloudflare R2，走 `dl.shirogame.top` 下载。
+`shirogame.top` 的站点源码：我做的游戏的陈列窗 + 下载站。纯静态，Astro 生成，托管在 Cloudflare Pages；安装包放 **GitHub Releases**（公开仓库 `shiro0721like/dorm-blitz-releases`），匿名可直接下载。
 
 游戏仓库是另一个项目（`D:\cmdproject\game4`），这里只放站点。`dorm.shirogame.top` 是游戏服，不属于这个仓库，也不要在这里改它的任何配置。
 
@@ -27,7 +27,7 @@ src/
 └── styles/tokens.css            品牌色（来自游戏本体的 src/styles.css）
 ```
 
-页面里**没有硬编码的版本号**。`downloads.json` 写错（比如 `latest` 和 `releases[0]` 对不上、直链不是 `dl.shirogame.top`）会让构建直接失败。
+页面里**没有硬编码的版本号**。`downloads.json` 写错（比如 `latest` 和 `releases[0]` 对不上、tag 不是 `v<version>`、文件名里没有版本号）会让构建直接失败。
 
 ## 加一款新游戏
 
@@ -47,28 +47,32 @@ src/
 
 ## 发一个新版本
 
-在**游戏仓库**里打包，在**站点仓库**里改清单：
+在**游戏仓库**里打包、在 **GitHub** 上发 Release，在**站点仓库**里改清单。
 
 ```bash
-# 游戏仓库：改 package.json 的 version，指定安装包以后的下载地址，然后打包
-set DORM_UPDATE_URL=https://dl.shirogame.top/dorm-blitz/0.1.1/dorm-blitz-Setup-0.1.1.exe
+# 1. 游戏仓库：改 package.json 的 version，指定安装包将来的下载地址，然后打包
+set DORM_UPDATE_URL=https://github.com/shiro0721like/dorm-blitz-releases/releases/download/v0.1.1/dorm-blitz-Setup-0.1.1.exe
 npm run build && npm run desktop:dist
 
-# 站点仓库：算大小和 SHA-256，写进 downloads.json（只改清单，不上传）
+# 2. 把打出来的 exe 改成 ASCII 名字（中文名会变成一长串 %E5%AE%BF…）
+#    "release\宿舍火并 Setup 0.1.1.exe" → dorm-blitz-Setup-0.1.1.exe
+
+# 3. GitHub → 仓库 dorm-blitz-releases → Releases → Draft a new release
+#    Tag 填 v0.1.1，标题写游戏名+版本，把 exe 拖进附件 → Publish
+
+# 4. 站点仓库：算大小和 SHA-256，写进 downloads.json（只改清单）
 npm run release:add -- "D:\cmdproject\game4\release\dorm-blitz-Setup-0.1.1.exe" --slug dorm-blitz --version 0.1.1 --notes "更新说明"
 
-# 上传到 R2（目录和文件名要跟 downloads.json 里的 url 完全一致）
-npx wrangler r2 object put "game-downloads/dorm-blitz/0.1.1/dorm-blitz-Setup-0.1.1.exe" --file "D:\cmdproject\game4\release\dorm-blitz-Setup-0.1.1.exe" --content-type application/octet-stream
-
-# 提交站点仓库 → 自动部署
+# 5. 提交站点仓库 → Pages 自动部署
 ```
 
 - 文件名规范：`<slug>-Setup-<version>.exe`（安装版）、`<slug>-Portable-<version>.exe`（便携版）、`<slug>-<version>.zip`。脚本会检查文件名里有没有版本号。
-- 现在 electron-builder 打出来的是 `宿舍火并 Setup 0.1.0.exe`（用的是 productName）。上传到 R2 时把对象名改成规范名即可（`0.1.0` 已经这样处理，见 `downloads.json` 的 `url`）；想省事可以在游戏仓库的 electron-builder 配置里加 `"artifactName": "dorm-blitz-Setup-\${version}.\${ext}"`。
-- **同一个版本号不要重新打包复用**：文件名带版本号、边缘缓存很长，换了内容会互相打架。要重打就升版本号。
-- 历史版本只追加，不删记录。R2 里超过保留数的旧包可以删，JSON 里保留记录、把 `url` 置空，页面会显示“已下架”。
+- 现在 electron-builder 打出来的是 `宿舍火并 Setup 0.1.0.exe`（用的是 productName），上传前要重命名成 ASCII；想省事可以在游戏仓库的 electron-builder 配置里加 `"artifactName": "dorm-blitz-Setup-${version}.${ext}"`。
+- **tag 必须是 `v<version>`**，且和 `downloads.json` 里的 `version` 对得上（构建期会校验）。
+- **同一个版本号不要重新打包复用**：GitHub 的 Release 附件一旦发布就带长缓存，换了内容会互相打架。要重打就升版本号、开新 Release。
+- 历史版本只追加，不删记录。不想再提供下载的旧版本，把 `url` 置空，页面会显示「已下架」；GitHub 上的旧 Release **不要删**，删了旧链接变 404，手上旧版客户端的更新检查会失败。
 - `DORM_UPDATE_URL` 必须和 `downloads.json` 里的 `url` 是同一个地址，否则客户端“提示的版本”和“下载到的版本”会对不上。
-- wrangler 的凭据：`wrangler login`，或者设 `CLOUDFLARE_API_TOKEN`（只给这个 R2 桶的写权限）+ `CLOUDFLARE_ACCOUNT_ID`。不要提交任何 token。
+- 不需要任何密钥、不需要 wrangler：上传就是浏览器里点 Release，这样构建过程也保持零 secret。
 
 ## 首次部署（只做一次）
 
@@ -78,8 +82,8 @@ npx wrangler r2 object put "game-downloads/dorm-blitz/0.1.1/dorm-blitz-Setup-0.1
    - Build command：`npm run build`，Build output directory：`dist`
    - 环境变量：`NODE_VERSION=22`
 3. Pages 项目 → Custom domains：绑定 `shirogame.top` 和 `www.shirogame.top`。
-4. R2：建桶 `game-downloads`，绑定自定义域 `dl.shirogame.top`。建议给 `dl.shirogame.top/*` 加一条长缓存的 Cache Rule（文件名带版本号，内容不会变）。
-5. 按“发一个新版本”上传安装包。
+4. 下载不需要额外配置：安装包在公开仓库 `shiro0721like/dorm-blitz-releases` 的 Release 里，站点只是链接过去。确认那个仓库是 **Public**，否则匿名访问会 404。
+5. 按“发一个新版本”在 GitHub 发 Release。
 6. 统计只开 Cloudflare Web Analytics（无 cookie），不要再接第三方统计脚本。
 
 `dorm.shirogame.top` 的 DNS 记录和 Tunnel 路由**保持原样**，不要给根域或 `*` 加 Tunnel 路由。对外只发 `shirogame.top`，不要传播 `*.pages.dev` 链接（国内访问不稳）。
@@ -109,7 +113,6 @@ node_modules/electron/dist/electron.exe <站点仓库>/scripts/capture/shots.cjs
 
 - 不提交安装包（`*.exe`、`release/` 已在 `.gitignore`，GitHub 单文件 100MB 硬限）。
 - 不把大文件放 Pages（单文件 25MiB 上限）。
-- 不对外发 `r2.dev` 直链。
 - 不写后端、不加数据库、不加登录。
 - 不引第三方 UI 框架或动画库。
 - 不改 `dorm.shirogame.top` 的任何配置。

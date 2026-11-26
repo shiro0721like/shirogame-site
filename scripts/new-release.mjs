@@ -4,7 +4,8 @@
 //     [--date 2026-12-01] [--channel stable] [--notes "更新说明"] [--url 直链] [--dry-run]
 //
 // 文件名规范：<slug>-Setup-<version>.exe / <slug>-Portable-<version>.exe / <slug>-<version>.zip
-// 直链默认：https://dl.shirogame.top/<slug>/<version>/<文件名>
+// 直链默认：https://github.com/shiro0721like/dorm-blitz-releases/releases/download/v<version>/<文件名>
+// 发布方式：在 GitHub 上建 Release，tag 用 v<version>，把 exe 作为附件传上去。
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { readFile, stat, writeFile } from 'node:fs/promises';
@@ -13,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JSON_PATH = path.join(root, 'src/data/downloads.json');
-const BASE = 'https://dl.shirogame.top';
+const BASE = 'https://github.com/shiro0721like/dorm-blitz-releases/releases/download';
 
 const argv = process.argv.slice(2);
 const file = argv.find((a) => !a.startsWith('--'));
@@ -51,7 +52,7 @@ const today = new Date();
 const date =
   opts.date ??
   `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-const url = opts.url ?? `${BASE}/${opts.slug}/${opts.version}/${encodeURIComponent(name)}`;
+const url = opts.url ?? `${BASE}/v${opts.version}/${encodeURIComponent(name)}`;
 
 const json = JSON.parse(await readFile(JSON_PATH, 'utf8'));
 const game = json[opts.slug];
@@ -87,7 +88,6 @@ if (opts['dry-run']) {
 }
 
 console.log('\n下一步：');
-console.log('  1. 上传到 R2（文件名和目录要跟上面的直链一致）：');
-console.log(`     npx wrangler r2 object put "game-downloads/${opts.slug}/${opts.version}/${name}" --file "${file}" --content-type application/octet-stream`);
-console.log('  2. 游戏仓库打包时把 DORM_UPDATE_URL 设成同一个直链，保证“提示的版本”和“下载到的版本”一致。');
+console.log(`  1. 去 ${BASE.replace('/releases/download', '/releases/new')} 建 Release：tag 填 v${opts.version}，把 ${name} 作为附件上传，然后 Publish。`);
+console.log('  2. 游戏仓库打包时把 DORM_UPDATE_URL 设成上面同一个直链，保证“提示的版本”和“下载到的版本”一致。');
 if (!opts['dry-run']) console.log('  3. 提交站点仓库，Pages 会自动部署。');
