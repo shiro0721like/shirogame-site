@@ -1,6 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import Todo from '../components/Todo.astro';
 import { SITE } from '../data/site';
 ---
 
@@ -11,36 +10,42 @@ import { SITE } from '../data/site';
   <div class="container">
     <header class="page-head">
       <h1>关于</h1>
-      <p class="lede">我是谁，这个站怎么来的，以及怎么联系我。</p>
+      <p class="lede">了解站主，以及本站的由来与联系方式。</p>
     </header>
 
     <div class="about">
       <section class="prose" aria-labelledby="about-me">
         <h2 id="about-me">我是谁</h2>
-        <Todo block hint="一两句自我介绍" />
+        <p>我是 shiro，一个普通大学生，也是追逐 AI 发展的体验者。欢迎你使用本站并下载体验，希望你能够喜欢这些由我的想法转变成的粗糙游戏与软件。</p>
 
-        <h2 id="about-why">这个站怎么来的</h2>
+        <h2 id="about-why">关于站点创建的碎碎念</h2>
         <p>
-          最早《宿舍火并》只能靠聊天软件传 exe：没有截图、没有说明、没有版本记录。朋友手里可能是三周前的包，也没地方查“当前最新版是哪个、更新了什么”。
+          AI 时代带来的最大便利，就是低成本地把人的创意落地。我从小一直就有创作梦，小学时口头创作文字冒险游戏，中学时写小说。到了现在，开始尝试创作游戏和软件程序。
         </p>
         <p>
-          所以有了这个站。它是“我做的游戏”的陈列窗加下载站：每款作品一页介绍、一个下载入口，外加一份开发日志。作品会越来越多，新游戏只要加一个文件就能进来。
+          最开始的时候，我的本意并不是搭建一个网站，而只是随便整个游戏玩玩。但是为了方便联机，又需要一个域名。我想着，反正域名都有了，不做个网站就浪费了，于是这个网站就诞生了。
         </p>
-        <p>它不是在线游戏平台，也不是博客或简历：不嵌网页游戏、不做账号和排行榜；开发日志只记“作品有进展”的事。</p>
+        <p>
+          欢迎你从本站点下载体验我创作的东西。如果你有任何想要反馈的，可以随时联系我。
+        </p>
         <p>
           想直接开一局，去
           <a href={SITE.gameServer.url} target="_blank" rel="noopener">
             {SITE.gameServer.url}
           </a>
-          （房主开着服务器的时候可以玩）。
+          。注：由于没有服务器，因此想要开联机需要联系站主打开服务器。
         </p>
 
         <h2 id="about-contact">联系方式</h2>
-        <Todo block hint="邮箱 / 社交账号 / 其他联系方式" />
+        <p>有什么想要说的都可以靠以下方式联系我：</p>
+        <ul>
+          <li>邮箱：<a href="mailto:qishiro69@gmail.com">qishiro69@gmail.com</a></li>
+          <li>GitHub：<a href="https://github.com/shiro0721like" target="_blank" rel="noopener">github.com/shiro0721like</a></li>
+        </ul>
       </section>
 
       <section aria-labelledby="about-stack">
-        <h2 id="about-stack" class="about-h2">这个站怎么搭的</h2>
+        <h2 id="about-stack" class="about-h2">了解本站</h2>
         <dl class="stack">
           <div><dt>站点</dt><dd>Astro 纯静态生成，只有 HTML、CSS 和少量 JS</dd></div>
           <div><dt>托管</dt><dd>Cloudflare Pages，推送到 GitHub 自动部署</dd></div>

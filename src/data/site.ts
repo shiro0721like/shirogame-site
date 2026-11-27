@@ -3,7 +3,7 @@ export const SITE = {
   name: 'shirogame',
   title: 'shirogame',
   /** 首页与未单独写 description 的页面用的一句话 */
-  description: '我做的游戏的陈列窗与下载站：作品介绍、截图、下载、版本记录与开发日志。',
+  description: '站主个人借助 AI 辅助创作的游戏与软件的陈列与下载站点，提供作品介绍、截图、版本记录与开发日志。',
   gameServer: {
     label: '宿舍火并 · 游戏服',
     url: 'https://dorm.shirogame.top',
@@ -12,6 +12,7 @@ export const SITE = {
 
 export const NAV = [
   { href: '/games/', label: '游戏' },
+  { href: '/programs/', label: '程序' },
   { href: '/downloads/', label: '下载' },
   { href: '/changelog/', label: '日志' },
   { href: '/about/', label: '关于' },
